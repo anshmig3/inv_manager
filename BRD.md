@@ -1,9 +1,10 @@
 # Business Requirements Document (BRD)
 ## Grocery Store Inventory Management — LLM Agentic Application
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Date:** 2026-04-08  
-**Status:** Draft
+**Status:** Draft  
+**Change Log:** v1.1 — Added SKU Card UI requirements (FR-48 to FR-56); moved to Phase 1
 
 ---
 
@@ -167,7 +168,69 @@ An agentic LLM application consolidates these concerns into a single intelligent
 | FR-42 | System shall flag SKUs with unusually high shrinkage rates |
 | FR-43 | System shall detect supplier invoices that deviate from agreed pricing |
 
-### 6.10 Reporting & Dashboards
+### 6.10 SKU Card UI
+
+The primary inventory view presents each SKU as an interactive card. This is the default landing screen for the store manager.
+
+#### Card Summary View (collapsed)
+
+| ID | Requirement |
+|----|-------------|
+| FR-48 | Each SKU shall be represented as a card displaying: SKU name, product image thumbnail (if available), current on-hand quantity, Days of Supply (D/S), and a status badge (Healthy / Low / Critical / Expiring) |
+| FR-49 | Cards with any active issue (stockout, low stock, near-expiry, promo stock shortfall) shall be highlighted with a **red border and red background tint**; cards with warnings (approaching reorder point, promo upcoming with marginal stock) shall use **amber**; healthy cards shall use **green** |
+| FR-50 | A promo indicator badge ("PROMO") shall be visible on the card face whenever the SKU has an active or upcoming promotion within the next 14 days |
+| FR-51 | The card grid shall support filtering by: department/category, alert severity, promo status (on promo / not on promo), and Days of Supply range |
+| FR-52 | Cards shall be sortable by: alert severity (default), Days of Supply (ascending), SKU name (A–Z), and last-updated timestamp |
+| FR-53 | The card grid shall support a text search bar to find SKUs by name or SKU code |
+
+#### Card Detail View (on click / tap)
+
+| ID | Requirement |
+|----|-------------|
+| FR-54 | Clicking a card shall expand an inline detail panel (or modal) without leaving the grid view |
+| FR-55 | The detail panel shall display all of the following fields: |
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  [Product Image]   Whole Milk 1L (SKU: DAIRY-0042)      │
+│  Status: ● CRITICAL — Stockout                          │
+├────────────────────┬────────────────────────────────────┤
+│  STOCK             │  SALES                             │
+│  On Hand:    0 units│  Daily Avg:   48 units/day        │
+│  On Order:  144 units│  Weekly:    336 units             │
+│  Reorder Pt: 72 units│  Last 30d:  1,440 units           │
+├────────────────────┼────────────────────────────────────┤
+│  DAYS OF SUPPLY    │  EXPIRY                            │
+│  Current D/S: 0.0  │  Nearest batch: 2026-04-11         │
+│  After PO D/S: 3.0 │  Units expiring: 0 (none on hand)  │
+├────────────────────┴────────────────────────────────────┤
+│  PROMOTION                                              │
+│  On Promo:   YES                                        │
+│  Promo Name: Spring Fresh Event                         │
+│  Start Date: 2026-04-10                                 │
+│  End Date:   2026-04-17                                 │
+│  Expected Uplift: +65%                                  │
+├─────────────────────────────────────────────────────────┤
+│  [ Request Stock Increase ]  [ Draft PO ]  [ Dismiss ]  │
+└─────────────────────────────────────────────────────────┘
+```
+
+| ID | Requirement |
+|----|-------------|
+| FR-56 | The detail panel shall include action buttons contextual to the SKU's current status: **"Request Stock Increase"** (generates a reorder recommendation), **"Draft PO"** (opens the PO workflow), **"Mark as Reviewed"** (dismisses alert for the current session), and **"Ask AI"** (opens the NL chat pre-filled with the SKU context) |
+
+#### Color-coding Reference
+
+| State | Card Color | Trigger Condition |
+|-------|-----------|-------------------|
+| Critical (red) | Red border + red tint | Stockout OR Days of Supply = 0 OR item expired OR on-promo SKU with D/S < 1 |
+| Warning (amber) | Amber border + amber tint | D/S ≤ 3 days OR expiry within 3 days OR on-promo SKU with D/S < promo duration |
+| Watch (yellow) | Yellow border | Approaching reorder point OR expiry within 7 days |
+| Healthy (green) | Green border | All thresholds met; no active alerts |
+
+---
+
+### 6.11 Reporting & Dashboards
 
 | ID | Requirement |
 |----|-------------|
@@ -284,6 +347,8 @@ The application is built as a **multi-agent LLM system** with the following spec
 | US-08 | Store Owner | View weekly shrinkage and stockout reports | I can measure operational performance |
 | US-09 | Store Manager | Be alerted if a delivery is overdue | I can chase the supplier proactively |
 | US-10 | Store Manager | Get alternate supplier suggestions when primary is out | I maintain supply continuity |
+| US-11 | Store Manager | See all SKUs as cards and immediately spot red cards | I can triage issues at a glance without reading lists |
+| US-12 | Store Manager | Click a red card and see sales, D/S, and promo dates in one place | I have full context before deciding what action to take |
 
 ---
 
@@ -320,6 +385,8 @@ The application is built as a **multi-agent LLM system** with the following spec
 
 ### Phase 1 — Core (Weeks 1–8)
 - Inventory monitoring & alerting (FR-01 to FR-06)
+- **SKU Card UI — card grid, red/amber/green highlighting, promo badge (FR-48 to FR-53)**
+- **SKU Card detail panel — sales, D/S, promo dates, expiry, action buttons (FR-54 to FR-56)**
 - Basic NL query interface (FR-28 to FR-31)
 - Reorder recommendations + manual PO draft (FR-22 to FR-24)
 - Expiry tracking (FR-07 to FR-10)
@@ -350,6 +417,9 @@ The system is considered production-ready when:
 5. PO draft generation requires < 3 manager actions to send
 6. System uptime ≥ 99.5% over a 30-day observation period
 7. Zero instances of LLM-fabricated inventory quantities in audit log
+8. SKU card grid loads ≤ 3 seconds for up to 500 visible cards
+9. All cards with active alerts are highlighted red/amber — zero false-color cards in QA testing
+10. Card detail panel renders all fields (sales, D/S, promo Y/N with dates) within 1 second of click
 
 ---
 
