@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 
 from app.database import engine, SessionLocal
 from app.models import SKU, StockLevel, SalesHistory, Alert, Promotion, ExpiryBatch, PurchaseOrder  # noqa: F401 — register models
@@ -43,6 +44,11 @@ app.include_router(alerts.router)
 app.include_router(dashboard.router)
 app.include_router(chat.router)
 app.include_router(purchase_orders.router)
+
+
+@app.get("/", include_in_schema=False)
+def root():
+    return RedirectResponse(url="/docs")
 
 
 @app.get("/health")
