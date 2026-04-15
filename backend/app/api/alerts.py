@@ -1,3 +1,4 @@
+from typing import List
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
@@ -9,7 +10,7 @@ from app.services.alert_engine import run_alert_scan
 router = APIRouter(prefix="/api/alerts", tags=["alerts"])
 
 
-@router.get("", response_model=list[AlertOut])
+@router.get("", response_model=List[AlertOut])
 def list_alerts(db: Session = Depends(get_db)):
     alerts = db.query(Alert).filter(Alert.is_active == True).order_by(Alert.created_at.desc()).all()
     return [AlertOut.model_validate(a) for a in alerts]

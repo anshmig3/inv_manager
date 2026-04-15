@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -55,7 +56,7 @@ def create_po(body: PurchaseOrderCreate, db: Session = Depends(get_db)):
     )
 
 
-@router.get("", response_model=list[PurchaseOrderOut])
+@router.get("", response_model=List[PurchaseOrderOut])
 def list_pos(db: Session = Depends(get_db)):
     pos = db.query(PurchaseOrder).order_by(PurchaseOrder.created_at.desc()).all()
     result = []

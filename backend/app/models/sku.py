@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import List, Optional
 from sqlalchemy import String, Float, Integer, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
@@ -22,11 +23,11 @@ class SKU(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     stock: Mapped["StockLevel"] = relationship("StockLevel", back_populates="sku", uselist=False)
-    sales_history: Mapped[list["SalesHistory"]] = relationship("SalesHistory", back_populates="sku")
-    alerts: Mapped[list["Alert"]] = relationship("Alert", back_populates="sku")
-    promotions: Mapped[list["Promotion"]] = relationship("Promotion", back_populates="sku")
-    expiry_batches: Mapped[list["ExpiryBatch"]] = relationship("ExpiryBatch", back_populates="sku")
-    purchase_orders: Mapped[list["PurchaseOrder"]] = relationship("PurchaseOrder", back_populates="sku")
+    sales_history: Mapped[List["SalesHistory"]] = relationship("SalesHistory", back_populates="sku")
+    alerts: Mapped[List["Alert"]] = relationship("Alert", back_populates="sku")
+    promotions: Mapped[List["Promotion"]] = relationship("Promotion", back_populates="sku")
+    expiry_batches: Mapped[List["ExpiryBatch"]] = relationship("ExpiryBatch", back_populates="sku")
+    purchase_orders: Mapped[List["PurchaseOrder"]] = relationship("PurchaseOrder", back_populates="sku")
 
 
 class StockLevel(Base):

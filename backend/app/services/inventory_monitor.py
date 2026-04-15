@@ -3,7 +3,7 @@ Core inventory monitoring service.
 Computes derived metrics (Days of Supply, card status) and runs the alert engine.
 """
 from datetime import datetime, date, timedelta
-from typing import Optional
+from typing import List, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
@@ -49,7 +49,7 @@ def _card_status(on_hand: float, dos: float, active_alerts: list, nearest_expiry
     return "HEALTHY"
 
 
-def _active_promos(db: Session, sku_id: int) -> list[Promotion]:
+def _active_promos(db: Session, sku_id: int) -> List[Promotion]:
     today = date.today()
     return db.query(Promotion).filter(
         Promotion.sku_id == sku_id,
@@ -59,7 +59,7 @@ def _active_promos(db: Session, sku_id: int) -> list[Promotion]:
     ).all()
 
 
-def _active_alerts(db: Session, sku_id: int) -> list[Alert]:
+def _active_alerts(db: Session, sku_id: int) -> List[Alert]:
     return db.query(Alert).filter(
         Alert.sku_id == sku_id,
         Alert.is_active == True,

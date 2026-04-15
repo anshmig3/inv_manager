@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
@@ -10,7 +10,7 @@ from app.services.inventory_monitor import get_sku_card, get_sku_detail
 router = APIRouter(prefix="/api/skus", tags=["skus"])
 
 
-@router.get("", response_model=list[SKUCardOut])
+@router.get("", response_model=List[SKUCardOut])
 def list_skus(
     category: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
@@ -44,7 +44,7 @@ def list_skus(
     return cards
 
 
-@router.get("/categories", response_model=list[str])
+@router.get("/categories", response_model=List[str])
 def list_categories(db: Session = Depends(get_db)):
     rows = db.query(SKU.category).distinct().order_by(SKU.category).all()
     return [r[0] for r in rows]

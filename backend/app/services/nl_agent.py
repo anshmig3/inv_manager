@@ -4,6 +4,7 @@ Provides a system prompt grounded in live inventory context.
 """
 import os
 from datetime import date
+from typing import List
 import anthropic
 from sqlalchemy.orm import Session
 
@@ -94,7 +95,7 @@ def chat(request: ChatRequest, db: Session) -> ChatResponse:
     reply: str = response.content[0].text
 
     # Extract simple suggested actions heuristically
-    actions: list[str] = []
+    actions: List[str] = []
     lower = reply.lower()
     if "order" in lower or "purchase order" in lower:
         actions.append("Draft Purchase Order")

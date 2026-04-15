@@ -1,3 +1,4 @@
+from typing import List
 from pydantic import BaseModel
 
 
@@ -8,9 +9,9 @@ class ChatMessage(BaseModel):
 
 class ChatRequest(BaseModel):
     message: str
-    history: list[ChatMessage] = []
+    history: List[ChatMessage] = []
 
 
 class ChatResponse(BaseModel):
     reply: str
-    suggested_actions: list[str] = []
+    suggested_actions: List[str] = []

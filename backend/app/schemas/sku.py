@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Optional
+from typing import List, Optional
 from pydantic import BaseModel
 
 
@@ -59,7 +59,7 @@ class SKUCardOut(BaseModel):
     days_of_supply: float
     reorder_point: float
     card_status: str          # HEALTHY | WATCH | WARNING | CRITICAL
-    active_alerts: list[AlertOut]
+    active_alerts: List[AlertOut]
     has_active_promo: bool
     nearest_expiry_date: Optional[date]
     days_until_expiry: Optional[int]
@@ -93,14 +93,14 @@ class SKUDetailOut(BaseModel):
     sales_stats: SalesStatsOut
 
     # Promotion
-    promotions: list[PromotionOut]
+    promotions: List[PromotionOut]
     has_active_promo: bool
 
     # Expiry
-    expiry_batches: list[ExpiryBatchOut]
+    expiry_batches: List[ExpiryBatchOut]
 
     # Alerts
-    active_alerts: list[AlertOut]
+    active_alerts: List[AlertOut]
 
     model_config = {"from_attributes": True}
 
@@ -115,4 +115,4 @@ class DashboardOut(BaseModel):
     low_stock_count: int
     near_expiry_count: int
     promo_active_count: int
-    recent_alerts: list[AlertOut]
+    recent_alerts: List[AlertOut]
