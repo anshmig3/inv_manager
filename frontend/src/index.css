@@ -4,7 +4,12 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background-color: #f1f5f9;
+  background-color: #0f172a;
   font-family: Inter, system-ui, sans-serif;
-  color: #1e293b;
+  color: #e2e8f0;
+}
+
+select option {
+  background-color: #1e293b;
+  color: #e2e8f0;
 }

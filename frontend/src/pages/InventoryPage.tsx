@@ -72,11 +72,11 @@ export default function InventoryPage({ onAskAI }: Props) {
       <SKUFilters filters={filters} categories={categories} onChange={setFilters} />
 
       {loading && cards.length === 0 ? (
-        <div className="flex items-center justify-center py-20 text-slate-400">
+        <div className="flex items-center justify-center py-20 text-slate-500">
           Loading inventory…
         </div>
       ) : cards.length === 0 ? (
-        <div className="flex items-center justify-center py-20 text-slate-400">
+        <div className="flex items-center justify-center py-20 text-slate-500">
           No SKUs match your filters.
         </div>
       ) : (
