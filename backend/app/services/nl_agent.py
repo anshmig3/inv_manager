@@ -1,19 +1,16 @@
 """
-Natural Language query agent using 1min.ai API.
+Natural Language query agent using Anthropic Claude SDK.
 Provides a system prompt grounded in live inventory context.
 """
 import os
 from datetime import date
-import httpx
+import anthropic
 from sqlalchemy.orm import Session
 
 from app.models import SKU, Alert, Promotion
 from app.schemas.chat import ChatRequest, ChatResponse
 
-ONEMIN_API_URL = "https://api.1min.ai/api/features"
-ONEMIN_API_KEY = os.getenv("ONEMIN_API_KEY", "")
-
-MODEL = "gpt-4o-mini"
+MODEL = "claude-sonnet-4-6"
 
 
 def _build_context_snapshot(db: Session) -> str:
@@ -78,47 +75,23 @@ Keep responses concise and actionable. Use bullet points for lists of items.
 """
 
 
-def _format_prompt(system: str, history: list, user_message: str) -> str:
-    """
-    Format system prompt + conversation history + new user message into a
-    single text block for the 1min.ai promptObject.prompt field.
-    """
-    parts = [f"System:\n{system}\n"]
-    for msg in history:
-        role = "User" if msg["role"] == "user" else "Assistant"
-        parts.append(f"{role}:\n{msg['content']}\n")
-    parts.append(f"User:\n{user_message}\n")
-    parts.append("Assistant:")
-    return "\n".join(parts)
-
-
 def chat(request: ChatRequest, db: Session) -> ChatResponse:
     context = _build_context_snapshot(db)
     system = SYSTEM_PROMPT + f"\n\n{context}"
 
-    history = [{"role": m.role, "content": m.content} for m in request.history]
-    prompt_text = _format_prompt(system, history, request.message)
+    # Build messages array from history + new user message
+    messages = [{"role": m.role, "content": m.content} for m in request.history]
+    messages.append({"role": "user", "content": request.message})
 
-    payload = {
-        "type": "CHAT_WITH_AI",
-        "model": MODEL,
-        "promptObject": {
-            "prompt": prompt_text,
-            "isMixed": False,
-            "webSearch": False,
-        },
-    }
-    headers = {
-        "API-KEY": ONEMIN_API_KEY,
-        "Content-Type": "application/json",
-    }
+    client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY", ""))
+    response = client.messages.create(
+        model=MODEL,
+        max_tokens=1024,
+        system=system,
+        messages=messages,
+    )
 
-    with httpx.Client(timeout=60.0) as client:
-        response = client.post(ONEMIN_API_URL, json=payload, headers=headers)
-        response.raise_for_status()
-
-    data = response.json()
-    reply: str = data["aiRecord"]["aiRecordDetail"]["resultObject"][0]
+    reply: str = response.content[0].text
 
     # Extract simple suggested actions heuristically
     actions: list[str] = []

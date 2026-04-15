@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from typing import Optional
 from pydantic import BaseModel
 
 
@@ -60,8 +61,8 @@ class SKUCardOut(BaseModel):
     card_status: str          # HEALTHY | WATCH | WARNING | CRITICAL
     active_alerts: list[AlertOut]
     has_active_promo: bool
-    nearest_expiry_date: date | None
-    days_until_expiry: int | None
+    nearest_expiry_date: Optional[date]
+    days_until_expiry: Optional[int]
 
     model_config = {"from_attributes": True}
 

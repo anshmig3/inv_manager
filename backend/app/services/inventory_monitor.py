@@ -3,6 +3,7 @@ Core inventory monitoring service.
 Computes derived metrics (Days of Supply, card status) and runs the alert engine.
 """
 from datetime import datetime, date, timedelta
+from typing import Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
@@ -31,7 +32,7 @@ def _compute_dos(on_hand: float, daily_avg: float) -> float:
     return round(on_hand / daily_avg, 1)
 
 
-def _card_status(on_hand: float, dos: float, active_alerts: list, nearest_expiry_days: int | None) -> str:
+def _card_status(on_hand: float, dos: float, active_alerts: list, nearest_expiry_days: Optional[int]) -> str:
     severities = {a.severity for a in active_alerts}
     if "CRITICAL" in severities or on_hand <= 0:
         return "CRITICAL"
@@ -65,7 +66,7 @@ def _active_alerts(db: Session, sku_id: int) -> list[Alert]:
     ).order_by(Alert.created_at.desc()).all()
 
 
-def _nearest_expiry(db: Session, sku_id: int) -> ExpiryBatch | None:
+def _nearest_expiry(db: Session, sku_id: int) -> Optional[ExpiryBatch]:
     today = date.today()
     return db.query(ExpiryBatch).filter(
         ExpiryBatch.sku_id == sku_id,

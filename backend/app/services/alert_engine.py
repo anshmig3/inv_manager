@@ -3,6 +3,7 @@ Alert engine — scans all SKUs and creates/resolves alerts.
 Runs on startup and on a configurable schedule.
 """
 from datetime import date, timedelta
+from typing import Optional
 from sqlalchemy.orm import Session
 
 from app.models import SKU, Alert, Promotion
@@ -34,7 +35,7 @@ def _resolve_alert(db: Session, sku_id: int, alert_type: str):
     ).update({"is_active": False, "resolved_at": datetime.utcnow()})
 
 
-def run_alert_scan(db: Session | None = None):
+def run_alert_scan(db: Optional[Session] = None):
     close = False
     if db is None:
         db = SessionLocal()

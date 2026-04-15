@@ -1,6 +1,9 @@
 from contextlib import asynccontextmanager
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
+load_dotenv()
 
 from app.database import engine, SessionLocal
 from app.models import SKU, StockLevel, SalesHistory, Alert, Promotion, ExpiryBatch, PurchaseOrder  # noqa: F401 — register models

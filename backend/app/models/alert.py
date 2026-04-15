@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 from sqlalchemy import String, Integer, DateTime, ForeignKey, Boolean, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
@@ -14,6 +15,6 @@ class Alert(Base):
     message: Mapped[str] = mapped_column(Text)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    resolved_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    resolved_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
 
     sku: Mapped["SKU"] = relationship("SKU", back_populates="alerts")

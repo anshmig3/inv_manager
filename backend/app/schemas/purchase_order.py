@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 from pydantic import BaseModel
 
 
@@ -21,6 +22,6 @@ class PurchaseOrderOut(BaseModel):
     status: str
     notes: str
     created_at: datetime
-    expected_delivery: datetime | None
+    expected_delivery: Optional[datetime]
 
     model_config = {"from_attributes": True}
