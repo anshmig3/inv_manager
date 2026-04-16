@@ -6,18 +6,18 @@ from fastapi.middleware.cors import CORSMiddleware
 load_dotenv()
 
 from app.database import engine, SessionLocal
-from app.models import SKU, StockLevel, SalesHistory, Alert, Promotion, ExpiryBatch, PurchaseOrder  # noqa: F401 — register models
+from app.models import SKU, StockLevel, SalesHistory, Alert, Promotion, ExpiryBatch, PurchaseOrder  # noqa: F401
+from app.models.user import User, NotificationPreference  # noqa: F401
 from app.database import Base
 from app.seed_data import seed
 from app.services.alert_engine import run_alert_scan
 from app.api import skus, alerts, dashboard, chat, purchase_orders
+from app.api.auth import router as auth_router, users_router
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Create tables
     Base.metadata.create_all(bind=engine)
-    # Seed demo data
     db = SessionLocal()
     try:
         seed(db)
@@ -41,6 +41,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth_router)
+app.include_router(users_router)
 app.include_router(skus.router)
 app.include_router(alerts.router)
 app.include_router(dashboard.router)

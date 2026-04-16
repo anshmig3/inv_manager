@@ -6,6 +6,8 @@ import random
 from sqlalchemy.orm import Session
 
 from app.models import SKU, StockLevel, SalesHistory, Promotion, ExpiryBatch
+from app.models.user import User, NotificationPreference, ROLE_ADMIN, ROLE_STORE_MANAGER, ROLE_DEPT_HEAD, ROLE_FLOOR_STAFF
+from app.core.security import hash_password
 
 random.seed(42)
 
@@ -58,7 +60,48 @@ STOCK_SCENARIOS = [
 ]
 
 
+DEMO_USERS = [
+    # (email, full_name, password, role, department)
+    ("admin@groceryiq.com",   "Admin User",       "Admin1234!",   ROLE_ADMIN,          None),
+    ("manager@groceryiq.com", "Sam Manager",      "Manager123!",  ROLE_STORE_MANAGER,  None),
+    ("dairy@groceryiq.com",   "Dana Dept Head",   "Dairy1234!",   ROLE_DEPT_HEAD,      "Dairy"),
+    ("staff@groceryiq.com",   "Floor Staff",      "Staff1234!",   ROLE_FLOOR_STAFF,    "Dairy"),
+]
+
+CHANNELS = ["in_app", "email", "sms"]
+SEVERITIES = ["CRITICAL", "HIGH", "MEDIUM", "LOW"]
+
+
+def _seed_users(db: Session):
+    if db.query(User).count() > 0:
+        return
+    for email, name, password, role, dept in DEMO_USERS:
+        user = User(
+            email=email,
+            full_name=name,
+            hashed_password=hash_password(password),
+            role=role,
+            department=dept,
+        )
+        db.add(user)
+        db.flush()
+        for channel in CHANNELS:
+            for severity in SEVERITIES:
+                db.add(NotificationPreference(
+                    user_id=user.id,
+                    channel=channel,
+                    severity=severity,
+                    enabled=True,
+                    quiet_hours_start=22 if channel == "sms" else None,
+                    quiet_hours_end=7 if channel == "sms" else None,
+                    override_quiet_for_critical=True,
+                    digest_frequency="realtime",
+                ))
+    db.commit()
+
+
 def seed(db: Session):
+    _seed_users(db)
     if db.query(SKU).count() > 0:
         return  # already seeded
 

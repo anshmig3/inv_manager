@@ -2,10 +2,20 @@ export type CardStatus = 'CRITICAL' | 'WARNING' | 'WATCH' | 'HEALTHY';
 
 export interface AlertOut {
   id: number;
+  sku_id: number;
   alert_type: string;
   severity: string;
   message: string;
+  is_active: boolean;
   created_at: string;
+  status: 'OPEN' | 'ACKNOWLEDGED' | 'IN_PROGRESS' | 'RESOLVED';
+  acknowledged_by: string | null;
+  acknowledged_at: string | null;
+  assigned_to: string | null;
+  assignment_note: string | null;
+  resolved_by: string | null;
+  resolved_at: string | null;
+  resolution_action: string | null;
 }
 
 export interface SKUCard {
@@ -97,4 +107,26 @@ export interface ChatMessage {
 export interface ChatResponse {
   reply: string;
   suggested_actions: string[];
+}
+
+export interface User {
+  id: number;
+  email: string;
+  full_name: string;
+  role: string;
+  department: string | null;
+  is_active: boolean;
+  created_at: string;
+  last_login: string | null;
+}
+
+export interface NotificationPref {
+  id: number;
+  channel: string;
+  severity: string;
+  enabled: boolean;
+  quiet_hours_start: number | null;
+  quiet_hours_end: number | null;
+  override_quiet_for_critical: boolean;
+  digest_frequency: string;
 }

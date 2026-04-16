@@ -39,10 +39,20 @@ class ExpiryBatchOut(BaseModel):
 
 class AlertOut(BaseModel):
     id: int
+    sku_id: int
     alert_type: str
     severity: str
     message: str
+    is_active: bool
     created_at: datetime
+    status: str
+    acknowledged_by: Optional[str]
+    acknowledged_at: Optional[datetime]
+    assigned_to: Optional[str]
+    assignment_note: Optional[str]
+    resolved_by: Optional[str]
+    resolved_at: Optional[datetime]
+    resolution_action: Optional[str]
 
     model_config = {"from_attributes": True}
 
