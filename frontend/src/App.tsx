@@ -1,14 +1,16 @@
 import { useState } from 'react';
-import { LayoutGrid, MessageSquare, ShoppingBag, LogOut, User, Bell, Users, AlertTriangle } from 'lucide-react';
+import { LayoutGrid, MessageSquare, ShoppingBag, LogOut, User, Bell, Users, AlertTriangle, Wrench, Zap } from 'lucide-react';
 import { useAuth } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
 import InventoryPage from './pages/InventoryPage';
 import ChatPage from './pages/ChatPage';
 import AlertsPage from './pages/AlertsPage';
+import OperationsPage from './pages/OperationsPage';
+import IntelligencePage from './pages/IntelligencePage';
 import NotificationPreferences from './components/Settings/NotificationPreferences';
 import UserManagement from './components/Settings/UserManagement';
 
-type Tab = 'inventory' | 'chat' | 'alerts' | 'notifications' | 'users';
+type Tab = 'inventory' | 'chat' | 'alerts' | 'operations' | 'intelligence' | 'notifications' | 'users';
 
 const ROLE_LABELS: Record<string, { label: string; color: string }> = {
   ADMIN:         { label: 'Admin',       color: 'text-red-400 bg-red-950/50 border-red-700' },
@@ -41,14 +43,14 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14">
           {/* Left: Logo + tabs */}
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               <ShoppingBag size={22} className="text-cyan-400" />
               <span className="font-bold text-white text-base tracking-wide">GroceryIQ</span>
-              <span className="text-xs bg-cyan-900 text-cyan-300 px-2 py-0.5 rounded-full font-semibold ml-1">
-                Phase 1
+              <span className="text-xs bg-violet-900 text-violet-300 px-2 py-0.5 rounded-full font-semibold ml-1">
+                Phase 3
               </span>
             </div>
-            <div className="flex gap-1">
+            <div className="flex gap-1 flex-wrap">
               <NavBtn active={tab === 'inventory'} onClick={() => setTab('inventory')} color="cyan">
                 <LayoutGrid size={15} /> Inventory
               </NavBtn>
@@ -57,6 +59,12 @@ export default function App() {
               </NavBtn>
               <NavBtn active={tab === 'alerts'} onClick={() => setTab('alerts')} color="amber">
                 <AlertTriangle size={15} /> Alerts
+              </NavBtn>
+              <NavBtn active={tab === 'operations'} onClick={() => setTab('operations')} color="indigo">
+                <Wrench size={15} /> Operations
+              </NavBtn>
+              <NavBtn active={tab === 'intelligence'} onClick={() => setTab('intelligence')} color="emerald">
+                <Zap size={15} /> Intelligence
               </NavBtn>
               {canManageUsers && (
                 <NavBtn active={tab === 'users'} onClick={() => setTab('users')} color="slate">
@@ -116,8 +124,10 @@ export default function App() {
       {/* Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         {tab === 'inventory'     && <InventoryPage onAskAI={handleAskAI} />}
-        {tab === 'chat'          && <ChatPage initialMessage={chatSeed} />}
+        {tab === 'chat'          && <ChatPage initialMessage={chatSeed} onNavigate={action => { if (action === 'View Alerts') setTab('alerts'); }} />}
         {tab === 'alerts'        && <AlertsPage />}
+        {tab === 'operations'    && <OperationsPage />}
+        {tab === 'intelligence'  && <IntelligencePage />}
         {tab === 'notifications' && <NotificationPreferences />}
         {tab === 'users'         && canManageUsers && <UserManagement />}
       </main>
@@ -134,10 +144,12 @@ function NavBtn({
   children: React.ReactNode;
 }) {
   const activeClasses: Record<string, string> = {
-    cyan:   'bg-cyan-600 text-white',
-    violet: 'bg-violet-600 text-white',
-    amber:  'bg-amber-600 text-white',
-    slate:  'bg-slate-600 text-white',
+    cyan:    'bg-cyan-600 text-white',
+    violet:  'bg-violet-600 text-white',
+    amber:   'bg-amber-600 text-white',
+    slate:   'bg-slate-600 text-white',
+    indigo:  'bg-indigo-600 text-white',
+    emerald: 'bg-emerald-600 text-white',
   };
   return (
     <button

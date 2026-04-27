@@ -6,13 +6,20 @@ from fastapi.middleware.cors import CORSMiddleware
 load_dotenv()
 
 from app.database import engine, SessionLocal
-from app.models import SKU, StockLevel, SalesHistory, Alert, Promotion, ExpiryBatch, PurchaseOrder  # noqa: F401
+from app.models import (  # noqa: F401
+    SKU, StockLevel, SalesHistory, Alert, Promotion, ExpiryBatch, PurchaseOrder,
+    Supplier, SupplierSKU,
+    StockAdjustment, CycleCount, CycleCountItem, Disposal, StockTransfer, CostHistory,
+    AuditLog,
+)
 from app.models.user import User, NotificationPreference  # noqa: F401
 from app.database import Base
 from app.seed_data import seed
 from app.services.alert_engine import run_alert_scan
 from app.api import skus, alerts, dashboard, chat, purchase_orders
 from app.api.auth import router as auth_router, users_router
+from app.api.operations import router as operations_router
+from app.api.intelligence import router as intelligence_router
 
 
 @asynccontextmanager
@@ -48,6 +55,8 @@ app.include_router(alerts.router)
 app.include_router(dashboard.router)
 app.include_router(chat.router)
 app.include_router(purchase_orders.router)
+app.include_router(operations_router)
+app.include_router(intelligence_router)
 
 
 @app.get("/health")

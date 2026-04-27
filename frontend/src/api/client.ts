@@ -65,6 +65,14 @@ export const api = {
   // Purchase orders
   createPO: (sku_id: number, quantity: number, notes?: string) =>
     post('/purchase-orders', { sku_id, quantity, notes: notes ?? '' }),
+  getPOs: (params?: Record<string, string>) => {
+    const q = params ? '?' + new URLSearchParams(params).toString() : '';
+    return get<unknown[]>(`/purchase-orders${q}`);
+  },
+  approvePO: (id: number) => post<unknown>(`/purchase-orders/${id}/approve`, {}),
+  sendPO: (id: number, email?: string) => post<unknown>(`/purchase-orders/${id}/send`, email ? { email } : {}),
+  receivePO: (id: number, body: { received_quantity: number; discrepancy_notes?: string }) =>
+    post<unknown>(`/purchase-orders/${id}/receive`, body),
 
   // Users
   getUsers: () => get<User[]>('/users'),
@@ -77,4 +85,58 @@ export const api = {
   getNotificationPrefs: () => get<NotificationPref[]>('/users/me/notification-preferences'),
   updateNotificationPref: (id: number, body: Partial<NotificationPref>) =>
     patch<NotificationPref>(`/users/me/notification-preferences/${id}`, body),
+
+  // Stock adjustments
+  createStockAdjustment: (body: { sku_id: number; new_quantity: number; reason: string }) =>
+    post<unknown>('/stock-adjustments', body),
+  getStockAdjustments: (sku_id: number) => get<unknown[]>(`/stock-adjustments/sku/${sku_id}`),
+
+  // Disposals
+  createDisposal: (body: { sku_id: number; quantity: number; reason: string; method: string; notes?: string }) =>
+    post<unknown>('/disposals', body),
+  approveDisposal: (id: number) => post<unknown>(`/disposals/${id}/approve`, {}),
+  getDisposals: (params?: Record<string, string>) => {
+    const q = params ? '?' + new URLSearchParams(params).toString() : '';
+    return get<unknown[]>(`/disposals${q}`);
+  },
+  getDisposalSummary: () => get<unknown>('/disposals/summary'),
+
+  // Transfers
+  createTransfer: (body: { sku_id: number; from_department: string; to_department: string; quantity: number; reason?: string }) =>
+    post<unknown>('/transfers', body),
+  getTransfers: () => get<unknown[]>('/transfers'),
+  approveTransfer: (id: number) => post<unknown>(`/transfers/${id}/approve`, {}),
+  completeTransfer: (id: number) => post<unknown>(`/transfers/${id}/complete`, {}),
+
+  // Suppliers
+  createSupplier: (body: { name: string; email: string; contact_name?: string; phone?: string; notes?: string }) =>
+    post<unknown>('/suppliers', body),
+  getSuppliers: () => get<unknown[]>('/suppliers'),
+  updateSupplier: (id: number, body: Partial<{ is_active: boolean; contact_name: string; phone: string; notes: string }>) =>
+    patch<unknown>(`/suppliers/${id}`, body),
+
+  // Delivery calendar
+  getDeliveryCalendar: (params: { date_from: string; date_to: string; supplier_id?: number }) => {
+    const p: Record<string, string> = { date_from: params.date_from, date_to: params.date_to };
+    if (params.supplier_id) p.supplier_id = String(params.supplier_id);
+    return get<unknown>(`/deliveries/calendar?${new URLSearchParams(p).toString()}`);
+  },
+
+  // Demand forecast
+  getForecast: (sku_id: number) => get<unknown>(`/forecast/${sku_id}`),
+
+  // Cost management
+  updateCost: (sku_id: number, body: { unit_cost: number; reason?: string }) =>
+    post<unknown>(`/skus/${sku_id}/cost`, body),
+  getCostHistory: (sku_id: number) => get<unknown[]>(`/skus/${sku_id}/cost-history`),
+
+  // Audit log
+  getAuditLog: (params?: Record<string, string>) => {
+    const q = params ? '?' + new URLSearchParams(params).toString() : '';
+    return get<unknown[]>(`/audit-log${q}`);
+  },
+
+  // Intelligence
+  getWeeklyReport: () => get<unknown>('/reports/weekly-performance'),
+  scanAnomalies: () => post<unknown>('/anomaly/scan', {}),
 };

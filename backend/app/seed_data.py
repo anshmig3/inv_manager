@@ -7,6 +7,8 @@ from sqlalchemy.orm import Session
 
 from app.models import SKU, StockLevel, SalesHistory, Promotion, ExpiryBatch
 from app.models.user import User, NotificationPreference, ROLE_ADMIN, ROLE_STORE_MANAGER, ROLE_DEPT_HEAD, ROLE_FLOOR_STAFF
+from app.models.supplier import Supplier
+from app.models.operations import CostHistory
 from app.core.security import hash_password
 
 random.seed(42)
@@ -188,5 +190,47 @@ def seed(db: Session):
                 end_date=end,
                 expected_uplift_pct=uplift,
             ))
+
+    # Seed storage locations and max stock on a few SKUs
+    storage_map = {
+        "DAIRY-001": ("Aisle 1 / Shelf A", 300),
+        "DAIRY-002": ("Aisle 1 / Shelf A", 200),
+        "BREAD-001": ("Aisle 2 / Shelf B", 200),
+        "PROD-001":  ("Produce Bay",       100),
+        "MEAT-001":  ("Cold Room 1",        80),
+    }
+    for sku in skus_created:
+        if sku.sku_code in storage_map:
+            loc, max_s = storage_map[sku.sku_code]
+            sku.storage_location = loc
+            sku.max_stock = max_s
+
+    # Seed suppliers
+    unique_suppliers = {}
+    for row in SKUS:
+        sname, semail = row[6], row[7]
+        if sname not in unique_suppliers:
+            unique_suppliers[sname] = semail
+    for sname, semail in unique_suppliers.items():
+        db.add(Supplier(name=sname, email=semail, is_active=True))
+
+    # Seed cost history for a few SKUs
+    for sku in skus_created[:5]:
+        db.add(CostHistory(
+            sku_id=sku.id,
+            unit_cost=round(sku.unit_cost * 0.95, 2),
+            previous_cost=round(sku.unit_cost * 0.90, 2),
+            changed_by="Admin User",
+            reason="Supplier contract renewal",
+            effective_date=datetime.utcnow() - timedelta(days=60),
+        ))
+        db.add(CostHistory(
+            sku_id=sku.id,
+            unit_cost=sku.unit_cost,
+            previous_cost=round(sku.unit_cost * 0.95, 2),
+            changed_by="Admin User",
+            reason="Annual price review",
+            effective_date=datetime.utcnow() - timedelta(days=10),
+        ))
 
     db.commit()

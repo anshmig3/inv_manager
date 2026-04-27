@@ -86,6 +86,14 @@ def run_alert_scan(db: Optional[Session] = None):
             else:
                 _resolve_alert(db, sku.id, "NEAR_EXPIRY")
 
+            # --- Overstock (FR-82) ---
+            if sku.max_stock and on_hand > sku.max_stock:
+                _upsert_alert(db, sku.id, "OVERSTOCK", "LOW",
+                              f"{sku.name} exceeds max stock level: "
+                              f"{on_hand:.0f} {sku.unit} on hand, max is {sku.max_stock:.0f}.")
+            else:
+                _resolve_alert(db, sku.id, "OVERSTOCK")
+
             # --- Promo shortfall ---
             promos = db.query(Promotion).filter(
                 Promotion.sku_id == sku.id,

@@ -8,9 +8,10 @@ import { api } from '../../api/client';
 interface Props {
   initialMessage?: string;
   onClose?: () => void;
+  onNavigate?: (action: string) => void;
 }
 
-export default function ChatInterface({ initialMessage }: Props) {
+export default function ChatInterface({ initialMessage, onNavigate }: Props) {
   const [history, setHistory] = useState<ChatMessage[]>([]);
   const [suggestedActions, setSuggestedActions] = useState<string[]>([]);
   const [input, setInput] = useState(initialMessage ?? '');
@@ -144,7 +145,7 @@ export default function ChatInterface({ initialMessage }: Props) {
           {suggestedActions.map(a => (
             <button
               key={a}
-              onClick={() => send(a)}
+              onClick={() => a === 'View Alerts' && onNavigate ? onNavigate(a) : send(a)}
               className="text-xs px-3 py-1 rounded-full border border-cyan-700 text-cyan-300 bg-cyan-950/40 hover:bg-cyan-900/50 transition-colors"
             >
               {a}

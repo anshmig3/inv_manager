@@ -19,6 +19,8 @@ class SKU(Base):
     supplier_email: Mapped[str] = mapped_column(String(200))
     lead_time_days: Mapped[int] = mapped_column(Integer, default=2)
     unit_cost: Mapped[float] = mapped_column(Float, default=0.0)
+    max_stock: Mapped[Optional[float]] = mapped_column(Float, nullable=True)         # FR-79: capacity cap
+    storage_location: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)  # FR-81: aisle/shelf
     image_url: Mapped[str] = mapped_column(String(500), default="")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
