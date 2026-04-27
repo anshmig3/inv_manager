@@ -55,7 +55,7 @@ def run_anomaly_scan(
     yesterday_end = today.replace(hour=0, minute=0, second=0)
 
     skus = db.query(SKU).all()
-    alerts_created = 0
+    anomalies: List[Dict[str, Any]] = []
 
     for sku in skus:
         # 30-day rolling average
@@ -77,7 +77,8 @@ def run_anomaly_scan(
                            .all())
         yesterday_total = sum(s.units_sold for s in yesterday_sales)
 
-        if daily_avg > 0 and yesterday_total > 2.5 * daily_avg:
+        spike_threshold = 2.5 * daily_avg
+        if daily_avg > 0 and yesterday_total > spike_threshold:
             existing = db.query(Alert).filter(
                 Alert.sku_id == sku.id,
                 Alert.alert_type == "ANOMALY_SPIKE",
@@ -92,7 +93,17 @@ def run_anomaly_scan(
                     status=ALERT_OPEN,
                 )
                 db.add(a)
-                alerts_created += 1
+            anomalies.append({
+                "sku_id": sku.id,
+                "sku_name": sku.name,
+                "anomaly_type": "CONSUMPTION_SPIKE",
+                "severity": "HIGH",
+                "detail": (f"Yesterday's consumption ({yesterday_total:.1f} {sku.unit}) "
+                           f"is {yesterday_total/daily_avg:.1f}× the 30-day average."),
+                "current_value": round(yesterday_total, 2),
+                "threshold": round(spike_threshold, 2),
+                "unit": sku.unit,
+            })
 
         # Shrinkage rate: monthly disposals > 3% of received
         since_30 = today - timedelta(days=30)
@@ -110,7 +121,8 @@ def run_anomaly_scan(
                .all())
         received_qty = sum(p.received_quantity or p.quantity for p in pos)
 
-        if received_qty > 0 and (disposed_qty / received_qty) > 0.03:
+        shrinkage_threshold_qty = received_qty * 0.03
+        if received_qty > 0 and disposed_qty > shrinkage_threshold_qty:
             existing = db.query(Alert).filter(
                 Alert.sku_id == sku.id,
                 Alert.alert_type == "HIGH_SHRINKAGE",
@@ -126,10 +138,24 @@ def run_anomaly_scan(
                     status=ALERT_OPEN,
                 )
                 db.add(a)
-                alerts_created += 1
+            anomalies.append({
+                "sku_id": sku.id,
+                "sku_name": sku.name,
+                "anomaly_type": "HIGH_SHRINKAGE",
+                "severity": "MEDIUM",
+                "detail": (f"Shrinkage rate {disposed_qty/received_qty*100:.1f}% "
+                           f"({disposed_qty:.1f} {sku.unit} disposed of {received_qty:.1f} received)."),
+                "current_value": round(disposed_qty / received_qty * 100, 2),
+                "threshold": 3.0,
+                "unit": "%",
+            })
 
     db.commit()
-    return {"message": f"Anomaly scan complete. {alerts_created} new alerts created."}
+    return {
+        "scanned_at": today.isoformat(),
+        "anomalies_found": len(anomalies),
+        "anomalies": anomalies,
+    }
 
 
 # ══════════════════════════════════════════════════════════════════════════════
